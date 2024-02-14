@@ -25,16 +25,16 @@ describe('Note app', function () {
     cy.get('#username').type('zoker')
     cy.get('#password').type('123456')
     cy.get('#login-button').click()
-
     cy.contains('Tin Nguyen logged in')
   })
 
   describe('when logged in', function () {
     beforeEach(function () {
-      cy.contains('log in').click()
-      cy.get('input:first').type('zoker')
-      cy.get('input:last').type('123456')
-      cy.get('#login-button').click()
+      // cy.contains('log in').click()
+      // cy.get('input:first').type('zoker')
+      // cy.get('input:last').type('123456')
+      // cy.get('#login-button').click()
+      cy.login({username: 'zoker', password: '123456'})
     })
 
     it('a new note can be created', function () {
@@ -55,7 +55,6 @@ describe('Note app', function () {
         cy.contains('another note cypress')
           .contains('make not important')
           .click()
-
         cy.contains('another note cypress')
           .contains('make important')
       })
@@ -66,11 +65,12 @@ describe('Note app', function () {
   it.only('login fails with wrong password', function () {
     cy.contains('log in').click()
     cy.get('#username').type('zoker')
-    cy.get('#password').type('wrong')
+    cy.get('#password').type('clumsy')
     cy.get('#login-button').click()
 
     cy.get('.error')
       .should('contain', 'wrong credentials')
+      //should give a wider scope of test while contain is only text-based testing
       .and('have.css', 'color', 'rgb(255, 0, 0)')
       .and('have.css', 'border-style', 'solid')
     

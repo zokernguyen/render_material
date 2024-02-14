@@ -319,3 +319,8 @@ return(
 ## d. End to end testing
 
 - `npm install --save-dev cypress`
+*_Kiểm soát DB trong quá trình test_
+- Nếu quá trình test cần tác động đến DB:
++ Cần có một DB riêng biệt cho mục đích testing.
++ Đảm bảo rằng testing DB là đồng nhất trước mỗi test case, tốt nhất đó nên là một DB trống.
++ Tuy nhiên, do công cụ E2E testing không thể truy cập DB, nên cần tạo các api endpoint để reset DB mỗi khi chạy test. Lưu ý khởi chạy backend bằng script test để sử dụng các endpoint này.
