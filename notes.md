@@ -255,9 +255,9 @@ _* Lưu ý rằng các handler của express router (tức hàm nhận req và r
 1. Người dùng nhập thông tin đăng nhập (username & password)
 2. Server kiểm tra thông tin đăng nhập, nếu đúng sẽ tạo 1 JWT token bao gồm thông tin người dùng, thời gian hết hạn. Token này được mã hóa bằng thuật toán HS256 kết hợp sử dụng secret key (.env).
 3. Token JWT được gửi trả về cho người dùng.
-4. Với mỗi request tiếp theo, người dùng sẽ gửi token JWT này trong header Authorization.
+4. Với mỗi request tiếp theo, người dùng sẽ gửi kèm token JWT này trong header Authorization.
 5. Server sẽ giải mã token JWT, kiểm tra hạn sử dụng, tính hợp lệ và lấy thông tin người dùng từ payload.
-6. Nếu token hợp lệ, người dùng được xác thực và cho phép truy cập vào tài nguyên.
+6. Nếu token hợp lệ, người dùng được xác thực và cho phép thực hiện request / truy cập vào tài nguyên.
 7. Nếu token không hợp lệ, truy cập sẽ bị từ chối.
 8. Quá trình này giúp xác thực người dùng mà không cần lưu trữ phiên làm việc trên server.
 Như vậy JWT giúp xác thực người dùng 1 cách stateless và an toàn. Token JWT chứa đựng thông tin xác thực đã được mã hóa.
@@ -266,9 +266,9 @@ Như vậy JWT giúp xác thực người dùng 1 cách stateless và an toàn. 
 
 + server/API blind trust in token holder. Miễn là người dùng cung cấp token hợp lệ, server vẫn tiếp tục cho phép người dùng truy cập. Tuy nhiên trên thực tế, quyền truy cập của người dùng có thể đã bị huỷ (do bị ban, bị restrict, ...); nhưng nếu họ vẫn đang nắm giữ một token hợp lệ và chưa hết hạn từ phiên đăng nhập trước; họ vẫn có thể truy cập tài nguyên bằng token này. Nghĩa là một khi đã cấp token cho người dùng, server không thể chủ động thu hồi/huỷ token này để hạn chế khả năng truy cập của người dùng; từ đó ảnh hưởng đến khả năng bảo mật của ứng dụng. Một giải pháp đơn giản đó là đặt expire time ngắn để nếu có bị hack; token cũng chỉ có giá trị sử dụng trong thời gian ngắn; nhưng đổi lại, nó yêu cầu người dùng phải đăng nhập lại thường xuyên.
 
-+ Server-side-session: Giải pháp này cho phép server chủ động hơn trong việc kiểm soát token của người dùng. Với SSS, token được cấp chỉ đơn giản là 1 string ngẫu nhiên, không dùng payload thông tin người dùng để mã hoá nữa. Token sau đó được lưu vào DB để tham chiếu đến người dùng tương ứng. Việc xác thực token vẫn diễn ra với mỗi request, nhưng logic của việc xác thực lúc này sẽ là tìm kiếm trong DB để xem có user nào sở hữu 1 token trùng với token mà browser gửi đi hay không. Và bằng cách này, server hoàn toàn kiểm soát quyền truy cập của người dùng đơn giản bằng cách giữ lại hoặc xoá đi token đó trong DB. Tuy nhiên, hệ quả là nó làm giảm hiệu năng khi đòi hỏi việc lưu trữ token trên DB; cũng như phải verify sự tồn tại của token (chính xác tìm kiếm trong DB) với mỗi lượt request. Token lúc này sẽ là stateful so với stateless khi triển khai JWT thông thường.
++ Server-side-session: Giải pháp này cho phép server chủ động hơn trong việc kiểm soát token của người dùng. Với SSS, token được cấp chỉ đơn giản là 1 string ngẫu nhiên, không dùng payload thông tin người dùng để mã hoá nữa. Token sau đó được lưu vào DB để tham chiếu đến người dùng tương ứng. Việc xác thực token vẫn diễn ra với mỗi request, nhưng logic của việc xác thực lúc này sẽ là tìm kiếm trong DB để xem có user nào sở hữu 1 token trùng với token mà browser gửi đi hay không. Và bằng cách này, server hoàn toàn kiểm soát quyền truy cập của người dùng đơn giản bằng cách giữ lại hoặc xoá đi token đó khỏi DB. Tuy nhiên, hệ quả là nó làm giảm hiệu năng khi đòi hỏi việc lưu trữ token trên DB; cũng như phải verify sự tồn tại của token (thông qua tìm kiếm trong DB) với mỗi lượt request. Token lúc này sẽ là stateful so với stateless khi triển khai JWT thông thường.
 
-+ So sánh một cách cụ thể, với việc triển khai JWT thông thường, server chỉ yêu cầu request gửi kèm 1 token còn hiệu lực; việc xác thực thông tin trong token chỉ xảy ra với những endpoint/operation cần đến yếu tố tác nhân (vd: thay đổi data của user nào?). Nghĩa là một người dùng mất quyền truy cập vẫn có truy cập các tài nguyên kiểm soát lỏng lẻo (vd truy cập trang chủ). Trong khi với SSS, việc xác thực token-người dùng luôn được thực hiện, giúp hạn chế tối đa sự xâm phạm của người dùng không có quyền.
++ Tóm lại, với việc triển khai JWT thông thường, server chỉ yêu cầu request gửi kèm 1 token còn hiệu lực; việc xác thực thông tin trong token chỉ xảy ra với những endpoint/operation cần đến yếu tố quyền hạn truy cập của user (vd: chỉ admin có quyền thay đổi thông tin của user khác). Nghĩa là một người dùng mất quyền truy cập vẫn có truy cập các tài nguyên kiểm soát lỏng lẻo (vd truy cập trang chủ). Trong khi với SSS, việc xác thực token-người dùng luôn được thực hiện, giúp hạn chế tối đa sự xâm phạm của người dùng không có quyền.
 
 ---
 
@@ -319,8 +319,11 @@ return(
 ## d. End to end testing
 
 - `npm install --save-dev cypress`
+
 *_Kiểm soát DB trong quá trình test_
 - Nếu quá trình test cần tác động đến DB:
 + Cần có một DB riêng biệt cho mục đích testing.
 + Đảm bảo rằng testing DB là đồng nhất trước mỗi test case, tốt nhất đó nên là một DB trống.
 + Tuy nhiên, do công cụ E2E testing không thể truy cập DB, nên cần tạo các api endpoint để reset DB mỗi khi chạy test. Lưu ý khởi chạy backend bằng script test để sử dụng các endpoint này.
+
+- Trong quá trình test, có thể bypass UI, bỏ qua phần điền form (ví dụ form đăng nhập) bằng cách trực tiếp sử dụng API/HTTP request để tiết kiệm thời gian.

@@ -1,14 +1,15 @@
 describe('Note app', function () {
 
   beforeEach(function () {
-    cy.request('POST', 'http://localhost:3001/api/testing/reset')
+    cy.request('POST',
+    `${Cypress.env('BACKEND')}/testing/reset`)
     const user = {
       name: 'Tin Nguyen',
       username: 'zoker',
       password: '123456'
     }
-    cy.request('POST', 'http://localhost:3001/api/users/', user) 
-    cy.visit('http://localhost:5173')
+    cy.request('POST', `${Cypress.env('BACKEND')}/users/`, user) 
+    cy.visit('')
   })
 
   it('front page can be opened', function () {
@@ -34,35 +35,20 @@ describe('Note app', function () {
       // cy.get('input:first').type('zoker')
       // cy.get('input:last').type('123456')
       // cy.get('#login-button').click()
-      cy.login({username: 'zoker', password: '123456'})
+      cy.login({ username: 'zoker', password: '123456' })
+      cy.createNote({content: 'first note', important: false})
+      cy.createNote({content: 'second note', important: false})
+      cy.createNote({content: 'third note', important: false})
     })
 
-    it('a new note can be created', function () {
-      cy.contains('new note').click()
-      cy.get('input').type('a note created by cypress')
-      cy.contains('save').click()
-      cy.contains('a note created by cypress')
+    it('one of those can be made important', function () {
+      cy.contains('second note').parent().find('button').as('theButton')
+      cy.get('@theButton').click()
+      cy.get('@theButton').should('contain', 'make not important')
     })
-
-    describe('and a note exists', function () {
-      beforeEach(function () {
-        cy.contains('new note').click()
-        cy.get('input').type('another note cypress')
-        cy.contains('save').click()
-      })
-
-      it('it can be made not important', function () {
-        cy.contains('another note cypress')
-          .contains('make not important')
-          .click()
-        cy.contains('another note cypress')
-          .contains('make important')
-      })
-    })
-
   })
 
-  it.only('login fails with wrong password', function () {
+  it('login fails with wrong password', function () {
     cy.contains('log in').click()
     cy.get('#username').type('zoker')
     cy.get('#password').type('clumsy')

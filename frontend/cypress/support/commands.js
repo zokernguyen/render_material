@@ -35,7 +35,7 @@ Cypress.Commands.add('login', ({ username, password }) => {
 
 Cypress.Commands.add('createNote', ({ content, important }) => {
     cy.request({
-        url: 'http;//localhost:3001/api/notes',
+        url: 'http://localhost:3001/api/notes',
         method: 'POST',
         body: { content, important },
         headers: {
